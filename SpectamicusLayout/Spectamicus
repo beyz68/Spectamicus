@@ -1,0 +1,261 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class SpectamicusLayout {
+
+    private JPanel panel1;
+    private JButton ansichtButton;
+    private JButton filmeSerienHinzufügenButton;
+    private List<Media> mediaList = new ArrayList<>();
+
+    public SpectamicusLayout() {
+        //Organisierung der Benutzeroberfläche.
+        panel1 = new JPanel();
+        panel1.setLayout(new BoxLayout(panel1, BoxLayout.Y_AXIS));
+        panel1.setBackground(new Color(128, 0, 0));
+
+
+
+        // Einfügen des Logos durch einen endgültigen Dateipfad
+        JLabel logoLabel = new JLabel();
+        try {
+            ImageIcon logoIcon = new ImageIcon("C:/Users/beyza/Downloads/D5C67F71-334E-4C08-B72B-2C879D1F4269.png");
+            logoLabel.setIcon(logoIcon);
+        } catch (Exception ex) { //Fehlermeldung, wenn Logo nicht lädt
+            System.err.println("Logo konnte nicht geladen werden: " + ex.getMessage());
+        }
+        logoLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        //Initialisierung und Anpassung des Ansicht-buttons und des Film/Serie hinzufügen-buttons
+        ansichtButton = new JButton("Ansicht");
+        customizeButton(ansichtButton);
+
+        filmeSerienHinzufügenButton = new JButton("Film/Serie hinzufügen");
+        customizeButton(filmeSerienHinzufügenButton);
+
+
+        //Hinzufügen von Abstand und die buttons und logos zum Hauptpanel
+        panel1.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel1.add(logoLabel);
+        panel1.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel1.add(ansichtButton);
+        panel1.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel1.add(filmeSerienHinzufügenButton);
+
+        // Hinzufügen der Aktionen für die Buttons
+        ansichtButton.addActionListener(e -> showMediaList());
+        filmeSerienHinzufügenButton.addActionListener(e -> openAddMediaDialog());
+
+        initObjekte();
+    }
+    // Passt das Design eines Buttons an für eine einheitliche Erscheinung
+    private void customizeButton(JButton button) {
+        button.setFont(new Font("Arial", Font.BOLD, 16));
+        button.setBackground(Color.BLACK);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+    }
+    // Initialisierung der Liste mit Beispieldaten für Ansicht
+    private void initObjekte() {
+        mediaList.add(new Media("Inception", "Film", "Ein Meisterwerk", 5, "Geschaut"));
+        mediaList.add(new Media("Breaking Bad", "Serie", "Fantastisch!", 5, "Laufend"));
+        mediaList.add(new Media("Avatar", "Film", "Visuell beeindruckend", 4, "Geplant"));
+    }
+    // Dialogfenster in dem Benutzer neue Medien hinzufügen kann
+    private void openAddMediaDialog() {
+        JDialog dialog = new JDialog((JFrame) null, "Film/Serie hinzufügen", true);
+        dialog.setSize(400, 500);
+        dialog.setLayout(new BoxLayout(dialog.getContentPane(), BoxLayout.Y_AXIS));
+        dialog.getContentPane().setBackground(new Color(128, 0, 0));
+
+    //Eingabefeld für Medien
+        JTextField titleField = new JTextField(20);
+        JComboBox<String> typeComboBox = new JComboBox<>(new String[]{"Film", "Serie"});
+        JTextArea reviewArea = new JTextArea(5, 20);
+        JComboBox<Integer> ratingComboBox = new JComboBox<>(new Integer[]{1, 2, 3, 4, 5});
+        JComboBox<String> statusComboBox = new JComboBox<>(new String[]{"Geschaut", "Abgebrochen", "Geplant", "Laufend"});
+
+        JButton saveButton = new JButton("Speichern"); //Speichern-Button
+        customizeButton(saveButton);
+
+        // Hinzufügen von Labels und Eingabefeldern zum Dialogfenster
+        dialog.add(createLabel("Titel:"));
+        dialog.add(titleField);
+        dialog.add(Box.createRigidArea(new Dimension(0, 10)));
+        dialog.add(createLabel("Typ:"));
+        dialog.add(typeComboBox);
+        dialog.add(Box.createRigidArea(new Dimension(0, 10)));
+        dialog.add(createLabel("Rezension:"));
+        dialog.add(new JScrollPane(reviewArea)); //Scrollbereich
+        dialog.add(Box.createRigidArea(new Dimension(0, 10)));
+        dialog.add(createLabel("Bewertung (1-5 Sterne):"));
+        dialog.add(ratingComboBox);
+        dialog.add(Box.createRigidArea(new Dimension(0, 10)));
+        dialog.add(createLabel("Status:"));
+        dialog.add(statusComboBox);
+        dialog.add(Box.createRigidArea(new Dimension(0, 10)));
+        dialog.add(saveButton);
+
+        // Aktion des Speichern-Buttons
+        saveButton.addActionListener(e -> {
+            try {
+                // Lesen der Eingaben
+                String title = titleField.getText();
+                String type = (String) typeComboBox.getSelectedItem();
+                String review = reviewArea.getText();
+                int rating = (int) ratingComboBox.getSelectedItem();
+                String status = (String) statusComboBox.getSelectedItem();
+
+                //Eingabefehler
+                if (title.isEmpty() || review.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "Bitte alle Felder ausfüllen!", "Fehler", JOptionPane.ERROR_MESSAGE);
+                } else { //Erfolgreiches Speichern zur Liste
+                    mediaList.add(new Media(title, type, review, rating, status));
+                    JOptionPane.showMessageDialog(dialog, "Film/Serie erfolgreich hinzugefügt!");
+                    dialog.dispose();
+                }
+            } catch (Exception ex) { //Fehlerbehandlung beim Speichern
+                JOptionPane.showMessageDialog(dialog, "Fehler beim Speichern: " + ex.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Dialogfesnter öffnet sich
+        dialog.setVisible(true);
+    }
+
+    //Jlabel mit Design
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Arial", Font.PLAIN, 14));
+        return label;
+    }
+
+    // Zeigt die gespeicherten Medien in einem Fenster als Tabelle an
+    private void showMediaList() {
+        JDialog dialog = new JDialog((JFrame) null, "Gespeicherte Filme und Serien", true);
+        dialog.setSize(700, 500);
+        dialog.setLayout(new BorderLayout());
+
+        //Tabellenbeschriftung und Daten aus der Medienliste
+        String[] columnNames = {"Titel", "Typ", "Rezension", "Bewertung", "Status"};
+        String[][] data = getTableData(mediaList);
+
+        JTable table = new JTable(data, columnNames);
+        JScrollPane scrollPane = new JScrollPane(table);
+
+        //Filteroption und dazugehörige Buttons
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        filterPanel.setBackground(new Color(128, 0, 0));
+
+        JLabel filterLabel = new JLabel("Filter: ");
+        filterLabel.setForeground(Color.WHITE);
+        JComboBox<String> filterComboBox = new JComboBox<>(new String[]{"Alle", "5 Sterne", "Filme", "Serien"});
+        JButton applyFilterButton = new JButton("Anwenden");
+        customizeButton(applyFilterButton);
+
+        JButton sortAZButton = new JButton("Sortieren A-Z");
+        customizeButton(sortAZButton);
+        JButton sortStarsButton = new JButton("Sortieren nach Sternen");
+        customizeButton(sortStarsButton);
+
+        //Filter-und Sortieroptionen dem Panel hinzufügen
+        filterPanel.add(filterLabel);
+        filterPanel.add(filterComboBox);
+        filterPanel.add(applyFilterButton);
+        filterPanel.add(sortAZButton);
+        filterPanel.add(sortStarsButton);
+
+        //Aktion des Buttons "Anwenden"
+        applyFilterButton.addActionListener(e -> {
+            try {
+                String selectedFilter = (String) filterComboBox.getSelectedItem();
+                List<Media> filteredList = applyFilter(selectedFilter); //Gefilterte Liste
+                javax.swing.table.DefaultTableModel tableModel = new javax.swing.table.DefaultTableModel(getTableData(filteredList), columnNames);
+                table.setModel(tableModel);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Fehler beim Anwenden des Filters: " + ex.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        //Sortieren A-Z
+        sortAZButton.addActionListener(e -> {
+            try {
+                mediaList.sort((m1, m2) -> m1.getTitle().compareToIgnoreCase(m2.getTitle()));
+                javax.swing.table.DefaultTableModel tableModel = new javax.swing.table.DefaultTableModel(getTableData(mediaList), columnNames);
+                table.setModel(tableModel);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Fehler beim Sortieren A-Z: " + ex.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Sortieren nach Sternen
+        sortStarsButton.addActionListener(e -> {
+            try {
+                mediaList.sort((m1, m2) -> Integer.compare(m2.getRating(), m1.getRating()));
+                javax.swing.table.DefaultTableModel tableModel = new javax.swing.table.DefaultTableModel(getTableData(mediaList), columnNames);
+                table.setModel(tableModel);
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog, "Fehler beim Sortieren nach Sternen: " + ex.getMessage(), "Fehler", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        // Schließen-Button
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.setBackground(new Color(128, 0, 0));
+        JButton closeButton = new JButton("Schließen");
+        customizeButton(closeButton);
+
+        closeButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(closeButton);
+
+        //Hinzufügen der Komponenten zum Dialogfensters
+        dialog.add(filterPanel, BorderLayout.NORTH);
+        dialog.add(scrollPane, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        dialog.setVisible(true);
+    }
+
+    //Konvertiert Media Objekte in ein 2D Array für Darstellung
+    private String[][] getTableData(List<Media> list) {
+        String[][] data = new String[list.size()][5];
+        for (int i = 0; i < list.size(); i++) {
+            Media media = list.get(i);
+            data[i][0] = media.getTitle();
+            data[i][1] = media.getType();
+            data[i][2] = media.getReview();
+            data[i][3] = media.getRating() + " Sterne";
+            data[i][4] = media.getStatus();
+        }
+        return data; // Zurückgeben des 2D-Arrays
+    }
+
+    // Filtert die Medialiste
+    private List<Media> applyFilter(String filter) {
+        switch (filter) {
+            case "5 Sterne":
+                return mediaList.stream().filter(media -> media.getRating() == 5).collect(Collectors.toList());
+            case "Filme":
+                return mediaList.stream().filter(media -> media.getType().equalsIgnoreCase("Film")).collect(Collectors.toList());
+            case "Serien":
+                return mediaList.stream().filter(media -> media.getType().equalsIgnoreCase("Serie")).collect(Collectors.toList());
+            default:
+                return mediaList;
+        }
+    }
+
+    //Startpunkt der Anwendung Erstellt das Hauptfenster und zeigt die Benutzeroberfläche an
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Spectamicus");
+        SpectamicusLayout layout = new SpectamicusLayout();
+        frame.setContentPane(layout.panel1);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 600);
+        frame.setVisible(true);
+    }
+}
